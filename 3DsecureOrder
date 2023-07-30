@@ -1,0 +1,50 @@
+#Creating a 3D secure Order:
+WorldpayRestClient restClient = new WorldpayRestClient("https://api.worldpay.com/v1 ", "your-test-service-key");
+
+var address  = new Address()
+{
+    address1 = "address1",
+    city = "city",
+    countryCode = CountryCode.GB,
+    postalCode = "postCode"
+};
+
+var orderRequest  = new OrderRequest()
+{
+    token = "your-token",
+    amount = 500,
+    currencyCode = CurrencyCode.GBP,
+    name = "name",
+    billingAddress = address,
+    orderDescription = "Order description",
+    customerOrderCode = "Order code",
+    authorizeOnly = true,
+    is3DSOrder = true,
+
+};
+
+try
+{
+    OrderResponse orderResponse = restClient.GetOrderService().Create    (orderRequest);
+	
+
+    string orderCode;
+    string oneTime3DsToken;
+    string redirectURL;
+    if (orderResponse.paymentStatus == OrderStatus.PRE_AUTHORIZED)
+    {
+        orderCode = orderResponse.orderCode;
+        oneTime3DsToken = orderResponse.oneTime3DsToken;
+        redirectURL = orderResponse.redirectURL;
+    }
+    else
+    {
+        throw new WorldpayException("Expected order status PRE_AUTHORIZED");
+    }
+}
+catch (WorldpayException e)
+{
+    Console.WriteLine("Error code:" + e.apiError.customCode);
+    Console.WriteLine("Error description: " + e.apiError.description);
+    Console.WriteLine("Error message: " + e.apiError.message);
+}
